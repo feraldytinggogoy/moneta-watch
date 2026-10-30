@@ -1,0 +1,23 @@
+# MONETA ticker: wakes the watcher every 15 minutes (Vercel Hobby cron only runs once a day).
+# Put this file at .github/workflows/moneta-watch.yml in this repo (public: no secrets inside, unlimited Actions minutes). See WATCHER.md.
+name: moneta-watch
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: moneta-watch
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Call the MONETA watcher
+        run: |
+          curl -fsS --max-time 55 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.MONETA_URL }}/api/signals/run" || exit 1
